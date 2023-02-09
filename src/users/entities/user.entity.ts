@@ -5,8 +5,13 @@ import {
     UpdateDateColumn,
     CreateDateColumn,
     Unique,
+    OneToMany,
+    ManyToOne,
 } from "typeorm";
 import { IsEmail, IsUrl, Length } from "class-validator";
+import { Wish } from "../../wishes/entities/wish.entity";
+import { Offer } from "../../offers/entities/offer.entity";
+import { Wishlist } from "../../wishlists/entities/wishlist.entity";
 
 @Entity()
 @Unique(["username", "email"])
@@ -38,4 +43,13 @@ export class User {
 
     @Column()
     password: boolean;
+
+    @OneToMany(() => Wish, (wish) => wish.owner)
+    wishes: Wish[];
+
+    @OneToMany(() => Offer, (offer) => offer.user)
+    offers: Offer[];
+
+    @OneToMany(() => Wishlist, (wishlist) => wishlist.owner)
+    wishlists: Wishlist[];
 }
