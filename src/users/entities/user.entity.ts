@@ -37,11 +37,11 @@ export class User {
     @IsUrl()
     avatar: string;
 
-    @Column()
+    @Column({ select: false })
     @IsEmail()
     email: boolean;
 
-    @Column()
+    @Column({ select: false })
     password: boolean;
 
     @OneToMany(() => Wish, (wish) => wish.owner)

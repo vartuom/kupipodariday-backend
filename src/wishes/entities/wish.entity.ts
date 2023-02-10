@@ -3,11 +3,13 @@ import {
     CreateDateColumn,
     Entity,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
 import { IsUrl, Length } from "class-validator";
 import { User } from "../../users/entities/user.entity";
+import { Offer } from "../../offers/entities/offer.entity";
 
 @Entity()
 export class Wish {
@@ -35,16 +37,19 @@ export class Wish {
     @Column("numeric", { scale: 2 })
     price: number;
 
-    @Column("numeric", { scale: 2 })
+    @Column("numeric", { scale: 2, default: 0 })
     raised: number;
 
     @Column({ length: 1024 })
     @Length(1, 1024)
     description: string;
 
-    @Column()
+    @Column("numeric", { default: 0 })
     copied: number;
 
     @ManyToOne(() => User, (user) => user.wishes)
     owner: User;
+
+    @OneToMany(() => Offer, (offer) => offer.item)
+    offers: Offer[];
 }

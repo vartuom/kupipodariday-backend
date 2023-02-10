@@ -1,9 +1,28 @@
-import { Column, Entity, ManyToOne } from "typeorm";
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    ManyToMany,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from "typeorm";
 import { IsUrl, Length } from "class-validator";
 import { User } from "../../users/entities/user.entity";
+import {Wish} from "../../wishes/entities/wish.entity";
+import {JoinTable} from "typeorm/browser";
 
 @Entity()
 export class Wishlist {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+
     @Column({ length: 250 })
     @Length(1, 250)
     name: string;
@@ -18,4 +37,8 @@ export class Wishlist {
 
     @ManyToOne(() => User, (user) => user.wishlists)
     owner: User;
+
+    @ManyToMany(() => Wish)
+    @JoinTable()
+    items: Wish[];
 }
