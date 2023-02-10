@@ -13,7 +13,7 @@ import { Wish } from "../../wishes/entities/wish.entity";
 import { Offer } from "../../offers/entities/offer.entity";
 import { Wishlist } from "../../wishlists/entities/wishlist.entity";
 
-@Entity()
+@Entity({ name: "users" })
 @Unique(["username", "email"])
 export class User {
     @PrimaryGeneratedColumn()

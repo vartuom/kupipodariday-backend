@@ -5,14 +5,14 @@ import {
     ManyToMany,
     ManyToOne,
     PrimaryGeneratedColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    JoinTable,
 } from "typeorm";
 import { IsUrl, Length } from "class-validator";
 import { User } from "../../users/entities/user.entity";
-import {Wish} from "../../wishes/entities/wish.entity";
-import {JoinTable} from "typeorm/browser";
+import { Wish } from "../../wishes/entities/wish.entity";
 
-@Entity()
+@Entity({ name: "wishlists" })
 export class Wishlist {
     @PrimaryGeneratedColumn()
     id: number;

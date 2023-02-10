@@ -1,8 +1,15 @@
-import {Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from "typeorm";
 import { User } from "../../users/entities/user.entity";
 import { Wish } from "../../wishes/entities/wish.entity";
 
-@Entity()
+@Entity({ name: "offers" })
 export class Offer {
     @PrimaryGeneratedColumn()
     id: number;

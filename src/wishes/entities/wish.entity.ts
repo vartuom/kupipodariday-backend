@@ -11,7 +11,7 @@ import { IsUrl, Length } from "class-validator";
 import { User } from "../../users/entities/user.entity";
 import { Offer } from "../../offers/entities/offer.entity";
 
-@Entity()
+@Entity({ name: "wishes" })
 export class Wish {
     @PrimaryGeneratedColumn()
     id: number;
