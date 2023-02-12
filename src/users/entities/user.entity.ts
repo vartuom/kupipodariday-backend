@@ -6,9 +6,8 @@ import {
     CreateDateColumn,
     Unique,
     OneToMany,
-    ManyToOne,
 } from "typeorm";
-import { IsEmail, IsUrl, Length } from "class-validator";
+import { IsEmail, IsString, IsUrl, Length } from "class-validator";
 import { Wish } from "../../wishes/entities/wish.entity";
 import { Offer } from "../../offers/entities/offer.entity";
 import { Wishlist } from "../../wishlists/entities/wishlist.entity";
@@ -26,10 +25,12 @@ export class User {
     updatedAt: Date;
 
     @Column({ length: 30 })
+    @IsString()
     @Length(2, 30)
     username: string;
 
     @Column({ length: 200, default: "Пока ничего не рассказал о себе" })
+    @IsString()
     @Length(2, 200)
     about: string;
 
@@ -39,10 +40,11 @@ export class User {
 
     @Column({ select: false })
     @IsEmail()
-    email: boolean;
+    email: string;
 
     @Column({ select: false })
-    password: boolean;
+    @IsString()
+    password: string;
 
     @OneToMany(() => Wish, (wish) => wish.owner)
     wishes: Wish[];

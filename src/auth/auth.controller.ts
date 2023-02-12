@@ -1,11 +1,16 @@
-import { Controller, Get, Post, UseGuards, Request } from "@nestjs/common";
+import { Controller, Get, Post, UseGuards, Request, Body } from "@nestjs/common";
 import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { CreateUserDto } from "../users/dto/create-user.dto";
+import {UsersService} from "../users/users.service";
 
 @Controller()
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(
+        private readonly authService: AuthService,
+        private readonly userService: UsersService,
+    ) {}
 
     // 1. гарда перехватывает запрос
     // 2. тригерит соответствующую стратегию
@@ -29,5 +34,11 @@ export class AuthController {
     @Get("protected")
     getHello(@Request() req) {
         return `Hello, ${req.user.email}!`;
+    }
+
+    @Post("signup")
+    async signup(@Body() createUserDto: CreateUserDto) {
+        // для валидации полей DTO не забыть подключить ValidationPipe в main.ts!
+        return this.userService.create(createUserDto);
     }
 }

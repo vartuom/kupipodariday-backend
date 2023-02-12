@@ -6,6 +6,7 @@ import { WishlistsModule } from "./wishlists/wishlists.module";
 import { OffersModule } from "./offers/offers.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthModule } from "./auth/auth.module";
+import { HashModule } from "./hash/hash.module";
 import typeOrmConfig from "./utils/typeOrmConfig";
 
 @Module({
@@ -16,6 +17,7 @@ import typeOrmConfig from "./utils/typeOrmConfig";
         OffersModule,
         TypeOrmModule.forRoot(typeOrmConfig),
         AuthModule,
+        HashModule,
     ],
     controllers: [AppController],
     providers: [],
