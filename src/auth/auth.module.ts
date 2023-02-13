@@ -6,16 +6,18 @@ import { PassportModule } from "@nestjs/passport";
 import { LocalStrategy } from "./strategies/local.strategy";
 import { JwtModule } from "@nestjs/jwt";
 import { JwtStrategy } from "./strategies/jwt.strategy";
+import { HashModule } from "../hash/hash.module";
 
 @Module({
-    // из модулей users и jwt используем сервисы, поэтому модули закидываем в импорт
+    // из модулей users, passport, hash и jwt используем сервисы, поэтому модули закидываем в импорт
     // для авторизации используем паспорт
     imports: [
         UsersModule,
         PassportModule,
+        HashModule,
         JwtModule.register({
-            secret: "gayfish",
-            signOptions: { expiresIn: "60s" },
+            secret: "gayfish", // не забыть спрятать!
+            signOptions: { expiresIn: "600s" },
         }),
     ],
     // стратегии тоже провайдеры, не забываем закинуть их в массив

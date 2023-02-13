@@ -1,6 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { UsersService } from "../users/users.service";
 import { JwtService } from "@nestjs/jwt";
+import { HashService } from "../hash/hash.service";
 
 @Injectable()
 export class AuthService {
@@ -8,22 +9,35 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService,
+        private hashService: HashService,
     ) {}
 
     //валидируем по паролю через локальную стратегию
-    validateUser(email: string, password: string) {
-        const user = this.usersService.findByEmail(email);
-        if (user && user.password === password) {
-            // исключаем пароль из ответа
-            const { password, ...restUserProps } = user;
-            //юзер улетает в локальнную стратегию
-            return restUserProps;
-        }
-        return null;
+    async validateUser(email: string, plainTextPassword: string) {
+        const user = await this.usersService.findOneByEmail(email);
+        if (!user)
+            throw new UnauthorizedException(
+                "Пользователь с указанным email не существует или пароль не верен.",
+            );
+        const match = await this.hashService.compare(
+            plainTextPassword,
+            user.password,
+        );
+        if (!match)
+            throw new UnauthorizedException(
+                "Пользователь с указанным email не существует или пароль не верен.",
+            );
+        // исключаем пароль из ответа
+        const { password, ...restUserProps } = user;
+        //юзер улетает в локальнную стратегию
+        return restUserProps;
     }
 
     login(email: string) {
         const payload = { email };
-        return { access_token: this.jwtService.sign(payload) };
+        // возвращаем на кликент объект с токеном, в токен записываем только email
+        return {
+            access_token: this.jwtService.sign(payload),
+        };
     }
 }

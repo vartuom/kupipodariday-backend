@@ -1,9 +1,16 @@
-import { Controller, Get, Post, UseGuards, Request, Body } from "@nestjs/common";
+import {
+    Controller,
+    Get,
+    Post,
+    UseGuards,
+    Request,
+    Body,
+} from "@nestjs/common";
 import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CreateUserDto } from "../users/dto/create-user.dto";
-import {UsersService} from "../users/users.service";
+import { UsersService } from "../users/users.service";
 
 @Controller()
 export class AuthController {
@@ -19,21 +26,23 @@ export class AuthController {
     // 5. auth сервис обращается к сервису user
     // 6. user ищет в базе пользователя по имени и возвращает объект пользователя
     // 7. все укатывается обратно в стратегию,
-    // 8. которая при успехе валидация добавляет пришедший объект пользователя в Request
+    // 8. которая при успехе валидации добавляет пришедший объект пользователя в Request
     // 9. в контроллер приходит объект запроса с пользователем из БД (req.user)
     // ...
     // n. profit!
     @UseGuards(LocalAuthGuard)
     @Post("signin")
-    signin(@Request() req) {
+    // декомпозируем req, достаем объект пользователя
+    signin(@Request() { user }) {
         // на базе полученного объекта пользователя создаем JWT
-        return this.authService.login(req.user.email);
+        // возвращаем на кликент объект с токеном, в токен записываем только email
+        return this.authService.login(user.email);
     }
 
     @UseGuards(JwtAuthGuard)
     @Get("protected")
-    getHello(@Request() req) {
-        return `Hello, ${req.user.email}!`;
+    getHello(@Request() { user }) {
+        return `Hello, ${user.username}!`;
     }
 
     @Post("signup")

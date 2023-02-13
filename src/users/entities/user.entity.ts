@@ -38,11 +38,11 @@ export class User {
     @IsUrl()
     avatar: string;
 
-    @Column({ select: false })
+    @Column()
     @IsEmail()
     email: string;
 
-    @Column({ select: false })
+    @Column()
     @IsString()
     password: string;
 
