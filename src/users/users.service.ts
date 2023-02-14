@@ -1,17 +1,14 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+    BadRequestException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { HashService } from "../hash/hash.service";
-
-export interface UserTemp {
-    id: number;
-    name: string;
-    email: string;
-    password: string;
-}
 
 @Injectable()
 // этот сервис дальше используем в модуле аунтификации, поэтому не забываем экспортировать его из модуля!
@@ -23,31 +20,44 @@ export class UsersService {
         private readonly hashService: HashService,
     ) {}
 
-    private readonly usersMockDD: UserTemp[] = [
-        {
-            id: 1,
-            name: "pickle rick",
-            email: "gayfish@ya.ru",
-            password: "42",
-        },
-        {
-            id: 2,
-            name: "morty",
-            email: "lol@ya.ru",
-            password: "43",
-        },
-    ];
-
-    findByEmail(email: string): UserTemp | undefined {
-        return this.usersMockDD.find((user) => user.email === email);
-    }
-
     findOneByEmail(email: string): Promise<User> {
+        // возвращаем с паролем, т.к. метод используется в валидации
         return this.usersRepository.findOneBy({ email });
     }
 
-    findOneByName(username: string) {
+    findOneById(id: number): Promise<User> {
+        return this.usersRepository.findOneBy({ id });
+    }
+
+    findOneByName(username: string): Promise<User> {
         return this.usersRepository.findOneBy({ username });
+    }
+
+    async update(id: number, updateUserDto: UpdateUserDto) {
+        const user = await this.findOneById(id);
+        if (
+            updateUserDto.username &&
+            updateUserDto.username !== user.username
+        ) {
+            const userByName = await this.findOneByName(updateUserDto.username);
+            if (userByName)
+                throw new BadRequestException(
+                    "Пользователь с таким email или username уже зарегистрирован.",
+                );
+        }
+        if (updateUserDto.email && updateUserDto.email !== user.email) {
+            const userByEmail = await this.findOneByEmail(updateUserDto.email);
+            if (userByEmail)
+                throw new BadRequestException(
+                    "Пользователь с таким email или username уже зарегистрирован.",
+                );
+        }
+        if (updateUserDto.password)
+            updateUserDto.password = await this.hashService.getHash(
+                updateUserDto.password,
+            );
+        await this.usersRepository.update(user.id, updateUserDto);
+        return await this.findOneById(user.id);
     }
 
     async create(createUserDto: CreateUserDto) {
@@ -57,7 +67,7 @@ export class UsersService {
         );
         if (isEmailExists || isUsernameExists)
             throw new BadRequestException(
-                "Пользователь с таким именем или почтой уже существует.",
+                "Пользователь с таким email или username уже зарегистрирован.",
             );
         const user = this.usersRepository.create({
             ...createUserDto,
@@ -77,10 +87,6 @@ export class UsersService {
 
     findOne(id: number) {
         return `This action returns a #${id} user`;
-    }
-
-    update(id: number, updateUserDto: UpdateUserDto) {
-        return `This action updates a #${id} user`;
     }
 
     remove(id: number) {

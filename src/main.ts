@@ -9,8 +9,11 @@ async function bootstrap() {
     // Чтобы использовать ValidationPipe, понадобится установить два модуля:
     // class-validator, который экспортирует удобные декораторы для валидации свойств класса;
     // class-transformer, который трансформирует данные от клиента в объекты наших DTO-классов.
-    app.useGlobalPipes(new ValidationPipe());
+    // !!!! { whitelist: true } вырезает из приходящих DTO все косячные поля типа "usernaFme"
+    // и не позволяет ловить эксепшены при сохранении в БД неизвестных полей
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
     await app.listen(3000);
 }
+
 bootstrap();

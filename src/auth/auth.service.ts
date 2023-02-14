@@ -17,7 +17,7 @@ export class AuthService {
         const user = await this.usersService.findOneByEmail(email);
         if (!user)
             throw new UnauthorizedException(
-                "Пользователь с указанным email не существует или пароль не верен.",
+                "Некорректная пара логин и пароль.",
             );
         const match = await this.hashService.compare(
             plainTextPassword,
@@ -25,7 +25,7 @@ export class AuthService {
         );
         if (!match)
             throw new UnauthorizedException(
-                "Пользователь с указанным email не существует или пароль не верен.",
+                "Некорректная пара логин и пароль.",
             );
         // исключаем пароль из ответа
         const { password, ...restUserProps } = user;
