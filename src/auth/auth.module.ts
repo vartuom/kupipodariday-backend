@@ -17,7 +17,7 @@ import { HashModule } from "../hash/hash.module";
         HashModule,
         JwtModule.register({
             secret: "gayfish", // не забыть спрятать!
-            signOptions: { expiresIn: "600s" },
+            signOptions: { expiresIn: "1d" },
         }),
     ],
     // стратегии тоже провайдеры, не забываем закинуть их в массив

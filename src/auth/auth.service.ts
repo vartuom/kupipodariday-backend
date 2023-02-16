@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+    ClassSerializerInterceptor,
+    Injectable,
+    UnauthorizedException,
+    UseInterceptors,
+} from "@nestjs/common";
 import { UsersService } from "../users/users.service";
 import { JwtService } from "@nestjs/jwt";
 import { HashService } from "../hash/hash.service";
@@ -12,7 +17,9 @@ export class AuthService {
         private hashService: HashService,
     ) {}
 
-    //валидируем по паролю через локальную стратегию
+    // валидируем по паролю через локальную стратегию
+    // перехватчик убирает пароль из выдачи
+    @UseInterceptors(ClassSerializerInterceptor)
     async validateUser(email: string, plainTextPassword: string) {
         const user = await this.usersService.findOneByEmail(email);
         if (!user)
@@ -27,10 +34,8 @@ export class AuthService {
             throw new UnauthorizedException(
                 "Некорректная пара логин и пароль.",
             );
-        // исключаем пароль из ответа
-        const { password, ...restUserProps } = user;
         //юзер улетает в локальнную стратегию
-        return restUserProps;
+        return user;
     }
 
     login(email: string) {

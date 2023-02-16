@@ -5,10 +5,11 @@ import {
 } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { HashService } from "../hash/hash.service";
+import { FindUsersDto } from "./dto/find-users.dto";
 
 @Injectable()
 // этот сервис дальше используем в модуле аунтификации, поэтому не забываем экспортировать его из модуля!
@@ -31,6 +32,18 @@ export class UsersService {
 
     findOneByName(username: string): Promise<User> {
         return this.usersRepository.findOneBy({ username });
+    }
+
+    findMany({ query }: FindUsersDto): Promise<User[]> {
+        return this.usersRepository.find({
+            // перечисление внутри массива = OR
+            // Like - частичное совпадение, % - n символов с обоих концов
+            // не чувствительно к регистру
+            where: [
+                { username: Like(`%${query}%`) },
+                { email: Like(`%${query}%`) },
+            ],
+        });
     }
 
     async update(id: number, updateUserDto: UpdateUserDto) {
@@ -74,11 +87,7 @@ export class UsersService {
             // хэшируем с помощью bcrypt пароль перед добавлением в базу
             password: await this.hashService.getHash(createUserDto.password),
         });
-        // исключаем пароль из ответа
-        const { password, ...restUserProps } = await this.usersRepository.save(
-            user,
-        );
-        return restUserProps;
+        return await this.usersRepository.save(user);
     }
 
     findAll() {

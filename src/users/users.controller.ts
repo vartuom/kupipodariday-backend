@@ -9,15 +9,22 @@ import {
     UseGuards,
     Req,
     NotFoundException,
+    UseInterceptors,
+    ClassSerializerInterceptor,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { User } from "./entities/user.entity";
+import { FindUsersDto } from "./dto/find-users.dto";
 
 // все ручки контроллера спрятаны за jwt гардой - все получают на вход Req {user}
+// @UseInterceptors(ClassSerializerInterceptor) убирает из респонсов все поля сущностей,
+// помеченные декоратором @Exclude (например, password)
+// https://stackoverflow.com/questions/50360101/how-to-exclude-entity-field-from-returned-by-controller-json-nestjs-typeorm
 @UseGuards(JwtAuthGuard)
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller("users")
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
@@ -27,17 +34,19 @@ export class UsersController {
         const currentUser = await this.usersService.findOneById(user.id);
         if (!currentUser)
             throw new NotFoundException("Пользователь не существует.");
-        // убираем хэш пароля из объекта
-        const { password, ...restUserProps } = currentUser;
-        return restUserProps;
+        return currentUser;
     }
 
     @Get(":username")
     async findOne(@Param("username") username: string) {
         const user = await this.usersService.findOneByName(username);
         if (!user) throw new NotFoundException("Пользователь не существует.");
-        const { password, ...restUserProps } = user;
-        return restUserProps;
+        return user;
+    }
+
+    @Post("find")
+    async findUsers(@Body() findUsersDto: FindUsersDto) {
+        return await this.usersService.findMany(findUsersDto);
     }
 
     @Patch("me")
