@@ -8,7 +8,7 @@ import {
     UpdateDateColumn,
     JoinTable,
 } from "typeorm";
-import { IsUrl, Length } from "class-validator";
+import { IsString, IsUrl, Length } from "class-validator";
 import { User } from "../../users/entities/user.entity";
 import { Wish } from "../../wishes/entities/wish.entity";
 
@@ -24,11 +24,13 @@ export class Wishlist {
     updatedAt: Date;
 
     @Column({ length: 250 })
+    @IsString()
     @Length(1, 250)
     name: string;
 
-    @Column({ length: 1500 })
-    @Length(0, 1500)
+    @Column({ length: 1500, nullable: true })
+    @IsString()
+    @Length(1, 1500)
     description: string;
 
     @Column()

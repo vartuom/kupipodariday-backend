@@ -8,6 +8,8 @@ import {
     Delete,
     UseGuards,
     Req,
+    NotFoundException,
+    BadRequestException,
 } from "@nestjs/common";
 import { WishesService } from "./wishes.service";
 import { CreateWishDto } from "./dto/create-wish.dto";
@@ -50,12 +52,15 @@ export class WishesController {
         @Req() { user }: { user: Omit<User, "password"> },
         @Body() updateWishDto: UpdateWishDto,
     ) {
-        return this.wishesService.update(id, user, updateWishDto);
+        return this.wishesService.update(id, updateWishDto, user);
     }
 
     @Delete(":id")
-    remove(@Param("id") id: string) {
-        return this.wishesService.remove(+id);
+    remove(
+        @Param("id") wishId: number,
+        @Req() { user }: { user: Omit<User, "password"> },
+    ) {
+        return this.wishesService.remove(wishId, user.id);
     }
 
     @Post(":id/copy")

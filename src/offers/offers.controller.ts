@@ -6,18 +6,26 @@ import {
     Patch,
     Param,
     Delete,
+    UseGuards,
+    Req,
 } from "@nestjs/common";
 import { OffersService } from "./offers.service";
 import { CreateOfferDto } from "./dto/create-offer.dto";
 import { UpdateOfferDto } from "./dto/update-offer.dto";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { User } from "../users/entities/user.entity";
 
+@UseGuards(JwtAuthGuard)
 @Controller("offers")
 export class OffersController {
     constructor(private readonly offersService: OffersService) {}
 
     @Post()
-    create(@Body() createOfferDto: CreateOfferDto) {
-        return this.offersService.create(createOfferDto);
+    create(
+        @Body() createOfferDto: CreateOfferDto,
+        @Req() { user }: { user: Omit<User, "password"> },
+    ) {
+        return this.offersService.create(createOfferDto, user.id);
     }
 
     @Get()
@@ -26,8 +34,8 @@ export class OffersController {
     }
 
     @Get(":id")
-    findOne(@Param("id") id: string) {
-        return this.offersService.findOne(+id);
+    findOne(@Param("id") id: number) {
+        return this.offersService.findOne(id);
     }
 
     @Patch(":id")

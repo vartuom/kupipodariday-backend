@@ -7,7 +7,7 @@ import { CreateWishDto } from "./dto/create-wish.dto";
 import { UpdateWishDto } from "./dto/update-wish.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Wish } from "./entities/wish.entity";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { UsersService } from "../users/users.service";
 import { User } from "../users/entities/user.entity";
 
@@ -72,13 +72,14 @@ export class WishesService {
         return wish;
     }
 
+    // пользователь опциональный, т.к. метод используется для обновления собранных средств в offersService
     async update(
         id: number,
-        user: Omit<User, "password">,
         updateWishDto: UpdateWishDto,
+        user?: Omit<User, "password">,
     ) {
         const wish = await this.findOne(id);
-        if (wish.owner.id !== user.id) {
+        if (user && wish.owner.id !== user.id) {
             throw new BadRequestException(
                 "Нельзя изменять желания других пользователей",
             );
@@ -87,8 +88,13 @@ export class WishesService {
         return await this.findOne(id);
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} wish`;
+    async remove(wishId: number, userId: number) {
+        const wish = await this.findOne(wishId);
+        if (userId !== wish.owner.id)
+            throw new BadRequestException("Нельзя удалять чужие желания.");
+        await this.wishesRepository.delete(wishId);
+        delete wish.owner.password;
+        return wish;
     }
 
     async copy(wishId: number, ownerId: number) {
@@ -114,5 +120,11 @@ export class WishesService {
         });
         delete copiedWish.owner.password;
         return await this.wishesRepository.save(copiedWish);
+    }
+
+    async findMany(idArray: number[]) {
+        return await this.wishesRepository.find({
+            where: { id: In(idArray) },
+        });
     }
 }
