@@ -10,6 +10,7 @@ import { User } from "./entities/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { HashService } from "../hash/hash.service";
 import { FindUsersDto } from "./dto/find-users.dto";
+import { Wish } from "../wishes/entities/wish.entity";
 
 @Injectable()
 // этот сервис дальше используем в модуле аунтификации, поэтому не забываем экспортировать его из модуля!
@@ -88,6 +89,16 @@ export class UsersService {
             password: await this.hashService.getHash(createUserDto.password),
         });
         return await this.usersRepository.save(user);
+    }
+
+    async getUserWishes(userId: number) {
+        const { wishes } = await this.usersRepository.findOne({
+            where: { id: userId },
+            select: ["wishes"],
+            relations: ["wishes", "wishes.owner", "wishes.offers"],
+        });
+        wishes.forEach((wish) => delete wish.owner.password);
+        return wishes;
     }
 
     findAll() {

@@ -9,5 +9,6 @@ import { UsersModule } from "../users/users.module";
     imports: [TypeOrmModule.forFeature([Wish]), UsersModule],
     controllers: [WishesController],
     providers: [WishesService],
+    exports: [WishesService],
 })
 export class WishesModule {}
