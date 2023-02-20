@@ -20,8 +20,8 @@ export class CreateWishlistDto {
     @IsNumber({}, { each: true })
     itemsId: number[];
 
-    @IsOptional()
     @IsString()
     @Length(1, 1500)
+    @IsOptional()
     description: string;
 }

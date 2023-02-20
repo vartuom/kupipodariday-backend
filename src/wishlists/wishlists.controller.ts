@@ -35,20 +35,24 @@ export class WishlistsController {
     }
 
     @Get(":id")
-    findOne(@Param("id") id: string) {
-        return this.wishlistsService.findOne(+id);
+    findOne(@Param("id") id: number) {
+        return this.wishlistsService.findOne(id);
     }
 
     @Patch(":id")
     update(
-        @Param("id") id: string,
+        @Param("id") listId: number,
+        @Req() { user }: { user: Omit<User, "password"> },
         @Body() updateWishlistDto: UpdateWishlistDto,
     ) {
-        return this.wishlistsService.update(+id, updateWishlistDto);
+        return this.wishlistsService.update(listId, user.id, updateWishlistDto);
     }
 
     @Delete(":id")
-    remove(@Param("id") id: string) {
-        return this.wishlistsService.remove(+id);
+    remove(
+        @Param("id") listId: number,
+        @Req() { user }: { user: Omit<User, "password"> },
+    ) {
+        return this.wishlistsService.remove(listId, user.id);
     }
 }

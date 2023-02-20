@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+    BadRequestException,
+    ForbiddenException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import { CreateWishlistDto } from "./dto/create-wishlist.dto";
 import { UpdateWishlistDto } from "./dto/update-wishlist.dto";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -40,15 +45,48 @@ export class WishlistsService {
         return wishlists;
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} wishlist`;
+    async findOne(id: number) {
+        const wishlist = await this.wishlistsRepository.findOne({
+            where: { id },
+            relations: ["owner", "items"],
+        });
+        if (!wishlist) throw new NotFoundException("Список не существует.");
+        delete wishlist.owner.password;
+        delete wishlist.owner.email;
+        return wishlist;
     }
 
-    update(id: number, updateWishlistDto: UpdateWishlistDto) {
-        return `This action updates a #${id} wishlist`;
+    async update(listId: number, userId, updateWishlistDto: UpdateWishlistDto) {
+        const wishlist = await this.findOne(listId);
+        const user = await this.usersService.findOneById(userId);
+        if (!user) throw new NotFoundException("Пользователь не найден.");
+        if (wishlist.owner.id !== userId) {
+            throw new BadRequestException(
+                "Нельзя удалить списки других пользователей.",
+            );
+        }
+        if (updateWishlistDto.itemsId) {
+            const wishes = await this.wishesService.findMany(
+                updateWishlistDto.itemsId,
+            );
+            const { itemsId, ...restUpdateProps } = updateWishlistDto;
+            // ¯\_(ツ)_/¯ иначе  ERROR [ExceptionsHandler] Cannot query across many-to-many for property items
+            Object.assign(wishlist, {
+                ...restUpdateProps,
+                items: wishes,
+            });
+            await this.wishlistsRepository.save(wishlist);
+        } else {
+            await this.wishlistsRepository.update(listId, updateWishlistDto);
+        }
+        return await this.findOne(listId);
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} wishlist`;
+    async remove(listId: number, userId: number) {
+        const wishlist = await this.findOne(listId);
+        if (wishlist.owner.id !== userId)
+            throw new ForbiddenException("Нельзя удалять чужие списки");
+        await this.wishlistsRepository.delete(listId);
+        return wishlist;
     }
 }
