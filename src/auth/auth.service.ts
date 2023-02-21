@@ -20,8 +20,8 @@ export class AuthService {
     // валидируем по паролю через локальную стратегию
     // перехватчик убирает пароль из выдачи
     @UseInterceptors(ClassSerializerInterceptor)
-    async validateUser(email: string, plainTextPassword: string) {
-        const user = await this.usersService.findOneByEmail(email);
+    async validateUser(username: string, plainTextPassword: string) {
+        const user = await this.usersService.findOneForAuthOrFail(username);
         if (!user)
             throw new UnauthorizedException(
                 "Некорректная пара логин и пароль.",

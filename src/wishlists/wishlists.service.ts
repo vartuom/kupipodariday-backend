@@ -22,7 +22,7 @@ export class WishlistsService {
         private readonly wishesService: WishesService,
     ) {}
     async create(createWishlistDto: CreateWishlistDto, userId: number) {
-        const user = await this.usersService.findOneById(userId);
+        const user = await this.usersService.findOneByIdOrFail(userId);
         if (!user) throw new NotFoundException("Пользователь не существует.");
         const wishes = await this.wishesService.findMany(
             createWishlistDto.itemsId,
@@ -58,7 +58,7 @@ export class WishlistsService {
 
     async update(listId: number, userId, updateWishlistDto: UpdateWishlistDto) {
         const wishlist = await this.findOne(listId);
-        const user = await this.usersService.findOneById(userId);
+        const user = await this.usersService.findOneByIdOrFail(userId);
         if (!user) throw new NotFoundException("Пользователь не найден.");
         if (wishlist.owner.id !== userId) {
             throw new BadRequestException(

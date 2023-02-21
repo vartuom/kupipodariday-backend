@@ -19,7 +19,7 @@ export class WishesService {
         private readonly usersService: UsersService,
     ) {}
     async create(createWishDto: CreateWishDto, ownerId: number) {
-        const owner = await this.usersService.findOneById(ownerId);
+        const owner = await this.usersService.findOneByIdOrFail(ownerId);
         if (!owner) throw new NotFoundException("Пользователь не существует.");
         const wish = await this.wishesRepository.create({
             ...createWishDto,
@@ -99,7 +99,7 @@ export class WishesService {
 
     async copy(wishId: number, ownerId: number) {
         const wish = await this.findOne(wishId);
-        const user = await this.usersService.findOneById(ownerId);
+        const user = await this.usersService.findOneByIdOrFail(ownerId);
         if (!wish || !user)
             throw new NotFoundException(
                 "Пользователь или желание не существует.",

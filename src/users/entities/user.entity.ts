@@ -39,11 +39,11 @@ export class User {
     @IsUrl()
     avatar: string;
 
-    @Column()
+    @Column({ select: false })
     @IsEmail()
     email: string;
 
-    @Column()
+    @Column({ select: false })
     @IsString()
     @Exclude()
     password: string;

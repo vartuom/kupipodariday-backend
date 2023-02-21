@@ -1,6 +1,10 @@
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-local";
-import {BadRequestException, Injectable, UnauthorizedException} from "@nestjs/common";
+import {
+    BadRequestException,
+    Injectable,
+    UnauthorizedException,
+} from "@nestjs/common";
 import { AuthService } from "../auth.service";
 import { User } from "../../users/entities/user.entity";
 
@@ -14,16 +18,16 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         // — стратегия будет искать параметры для авторизации пользователя в полях
         // с именами `username` и `password`.
         // При желании, можно указать свои имена полей:
-        super({ usernameField: "email", passwordField: "password" });
+        super({ usernameField: "username", passwordField: "password" });
     }
 
     // метод validate основа логики стратегий
     async validate(
-        email: string,
+        username: string,
         password: string,
     ): Promise<Omit<User, "password">> {
         //if (!email || !password) throw new BadRequestException("Необходимо передать пароль и email.");
-        const user = await this.authService.validateUser(email, password);
+        const user = await this.authService.validateUser(username, password);
         // если все ОК то объект пользователя улетает в Req запроса
         return user;
     }

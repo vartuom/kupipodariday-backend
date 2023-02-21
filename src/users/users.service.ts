@@ -10,7 +10,11 @@ import { User } from "./entities/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { HashService } from "../hash/hash.service";
 import { FindUsersDto } from "./dto/find-users.dto";
-import { Wish } from "../wishes/entities/wish.entity";
+import {
+    EMAIL_EXISTS_ERROR_MESSAGE,
+    USER_NOT_FOUND_ERROR_MESSAGE,
+    USERNAME_EXISTS_ERROR_MESSAGE,
+} from "../utils/errorConstants";
 
 @Injectable()
 // этот сервис дальше используем в модуле аунтификации, поэтому не забываем экспортировать его из модуля!
@@ -22,17 +26,32 @@ export class UsersService {
         private readonly hashService: HashService,
     ) {}
 
-    findOneByEmail(email: string): Promise<User> {
+    async findOneByEmailOrFail(email: string): Promise<User> {
+        const user = await this.usersRepository.findOneBy({ email });
+        if (!user) throw new NotFoundException(USER_NOT_FOUND_ERROR_MESSAGE);
+        return user;
+    }
+
+    async findOneForAuthOrFail(username: string): Promise<User> {
         // возвращаем с паролем, т.к. метод используется в валидации
-        return this.usersRepository.findOneBy({ email });
+        const user = await this.usersRepository.findOne({
+            select: ["id", "username", "email", "password"],
+            where: { username: username },
+        });
+        if (!user) throw new NotFoundException(USER_NOT_FOUND_ERROR_MESSAGE);
+        return user;
     }
 
-    findOneById(id: number): Promise<User> {
-        return this.usersRepository.findOneBy({ id });
+    async findOneByIdOrFail(id: number): Promise<User> {
+        const user = await this.usersRepository.findOneBy({ id });
+        if (!user) throw new NotFoundException(USER_NOT_FOUND_ERROR_MESSAGE);
+        return user;
     }
 
-    findOneByName(username: string): Promise<User> {
-        return this.usersRepository.findOneBy({ username });
+    async findOneByNameOrFail(username: string): Promise<User> {
+        const user = await this.usersRepository.findOneBy({ username });
+        if (!user) throw new NotFoundException(USER_NOT_FOUND_ERROR_MESSAGE);
+        return user;
     }
 
     findMany({ query }: FindUsersDto): Promise<User[]> {
@@ -48,41 +67,43 @@ export class UsersService {
     }
 
     async update(id: number, updateUserDto: UpdateUserDto) {
-        const user = await this.findOneById(id);
+        const user = await this.findOneByIdOrFail(id);
         if (
             updateUserDto.username &&
             updateUserDto.username !== user.username
         ) {
-            const userByName = await this.findOneByName(updateUserDto.username);
-            if (userByName)
-                throw new BadRequestException(
-                    "Пользователь с таким email или username уже зарегистрирован.",
-                );
+            const isUsernameExists = await this.usersRepository.findOneBy({
+                username: updateUserDto.username,
+            });
+            if (isUsernameExists)
+                throw new BadRequestException(USERNAME_EXISTS_ERROR_MESSAGE);
         }
         if (updateUserDto.email && updateUserDto.email !== user.email) {
-            const userByEmail = await this.findOneByEmail(updateUserDto.email);
-            if (userByEmail)
-                throw new BadRequestException(
-                    "Пользователь с таким email или username уже зарегистрирован.",
-                );
+            const isEmailExists = await this.usersRepository.findOneBy({
+                email: updateUserDto.email,
+            });
+            if (isEmailExists)
+                throw new BadRequestException(EMAIL_EXISTS_ERROR_MESSAGE);
         }
         if (updateUserDto.password)
             updateUserDto.password = await this.hashService.getHash(
                 updateUserDto.password,
             );
         await this.usersRepository.update(user.id, updateUserDto);
-        return await this.findOneById(user.id);
+        return await this.findOneByIdOrFail(user.id);
     }
 
     async create(createUserDto: CreateUserDto) {
-        const isEmailExists = await this.findOneByEmail(createUserDto.email);
-        const isUsernameExists = await this.findOneByEmail(
-            createUserDto.username,
-        );
-        if (isEmailExists || isUsernameExists)
-            throw new BadRequestException(
-                "Пользователь с таким email или username уже зарегистрирован.",
-            );
+        const isEmailExists = await this.usersRepository.findOneBy({
+            email: createUserDto.email,
+        });
+        if (isEmailExists)
+            throw new BadRequestException(EMAIL_EXISTS_ERROR_MESSAGE);
+        const isUsernameExists = await this.usersRepository.findOneBy({
+            username: createUserDto.username,
+        });
+        if (isUsernameExists)
+            throw new BadRequestException(USERNAME_EXISTS_ERROR_MESSAGE);
         const user = this.usersRepository.create({
             ...createUserDto,
             // хэшируем с помощью bcrypt пароль перед добавлением в базу
@@ -90,26 +111,13 @@ export class UsersService {
         });
         return await this.usersRepository.save(user);
     }
-
-    async getUserWishes(userId: number) {
+    async getUserWishes(username: string) {
+        const user = await this.findOneByNameOrFail(username);
         const { wishes } = await this.usersRepository.findOne({
-            where: { id: userId },
+            where: { id: user.id },
             select: ["wishes"],
             relations: ["wishes", "wishes.owner", "wishes.offers"],
         });
-        wishes.forEach((wish) => delete wish.owner.password);
         return wishes;
-    }
-
-    findAll() {
-        return `This action returns all users`;
-    }
-
-    findOne(id: number) {
-        return `This action returns a #${id} user`;
-    }
-
-    remove(id: number) {
-        return `This action removes a #${id} user`;
     }
 }

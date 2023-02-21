@@ -24,36 +24,29 @@ import { FindUsersDto } from "./dto/find-users.dto";
 // помеченные декоратором @Exclude (например, password)
 // https://stackoverflow.com/questions/50360101/how-to-exclude-entity-field-from-returned-by-controller-json-nestjs-typeorm
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(ClassSerializerInterceptor)
+// @UseInterceptors(ClassSerializerInterceptor)
 @Controller("users")
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @Get("me")
-    async getCurrentUser(@Req() { user }: { user: Omit<User, "password"> }) {
-        const currentUser = await this.usersService.findOneById(user.id);
-        if (!currentUser)
-            throw new NotFoundException("Пользователь не существует.");
-        return currentUser;
+    getCurrentUser(@Req() { user }: { user: Omit<User, "password"> }) {
+        return this.usersService.findOneByIdOrFail(user.id);
     }
 
     @Get("me/wishes")
-    async getMyWishes(@Req() { user }: { user: Omit<User, "password"> }) {
-        return this.usersService.getUserWishes(user.id);
+    getMyWishes(@Req() { user }: { user: Omit<User, "password"> }) {
+        return this.usersService.getUserWishes(user.username);
     }
 
     @Get(":username/wishes")
-    async getAnotherUserWishes(@Param("username") username: string) {
-        const user = await this.usersService.findOneByName(username);
-        if (!user) throw new NotFoundException("Пользователь не существует.");
-        return this.usersService.getUserWishes(user.id);
+    getAnotherUserWishes(@Param("username") username: string) {
+        return this.usersService.getUserWishes(username);
     }
 
     @Get(":username")
-    async findOne(@Param("username") username: string) {
-        const user = await this.usersService.findOneByName(username);
-        if (!user) throw new NotFoundException("Пользователь не существует.");
-        return user;
+    findOne(@Param("username") username: string) {
+        return this.usersService.findOneByNameOrFail(username);
     }
 
     @Post("find")
@@ -66,25 +59,11 @@ export class UsersController {
         @Req() { user }: { user: Omit<User, "password"> },
         @Body() updateUserDto: UpdateUserDto,
     ) {
-        const { password, ...restUserProps } = await this.usersService.update(
-            user.id,
-            updateUserDto,
-        );
-        return restUserProps;
+        return await this.usersService.update(user.id, updateUserDto);
     }
 
     @Post()
     create(@Body() createUserDto: CreateUserDto) {
         return this.usersService.create(createUserDto);
-    }
-
-    @Get()
-    findAll() {
-        return this.usersService.findAll();
-    }
-
-    @Delete(":id")
-    remove(@Param("id") id: string) {
-        return this.usersService.remove(+id);
     }
 }

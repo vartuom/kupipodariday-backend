@@ -21,7 +21,7 @@ export class OffersService {
         private readonly wishesService: WishesService,
     ) {}
     async create(createOfferDto: CreateOfferDto, userId: number) {
-        const user = await this.usersService.findOneById(userId);
+        const user = await this.usersService.findOneByIdOrFail(userId);
         if (!user) throw new NotFoundException("Пользователь не существует.");
         const wish = await this.wishesService.findOne(createOfferDto.itemId);
         const raised = wish.raised + createOfferDto.amount;
