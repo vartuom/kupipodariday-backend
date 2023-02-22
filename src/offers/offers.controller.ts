@@ -3,15 +3,12 @@ import {
     Get,
     Post,
     Body,
-    Patch,
     Param,
-    Delete,
     UseGuards,
     Req,
 } from "@nestjs/common";
 import { OffersService } from "./offers.service";
 import { CreateOfferDto } from "./dto/create-offer.dto";
-import { UpdateOfferDto } from "./dto/update-offer.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { User } from "../users/entities/user.entity";
 

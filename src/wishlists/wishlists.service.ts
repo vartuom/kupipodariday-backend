@@ -7,7 +7,6 @@ import {
 import { CreateWishlistDto } from "./dto/create-wishlist.dto";
 import { UpdateWishlistDto } from "./dto/update-wishlist.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Wish } from "../wishes/entities/wish.entity";
 import { Repository } from "typeorm";
 import { UsersService } from "../users/users.service";
 import { Wishlist } from "./entities/wishlist.entity";

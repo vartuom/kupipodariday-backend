@@ -8,8 +8,6 @@ import {
     Delete,
     UseGuards,
     Req,
-    NotFoundException,
-    BadRequestException,
 } from "@nestjs/common";
 import { WishesService } from "./wishes.service";
 import { CreateWishDto } from "./dto/create-wish.dto";

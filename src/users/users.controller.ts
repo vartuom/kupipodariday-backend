@@ -5,12 +5,8 @@ import {
     Body,
     Patch,
     Param,
-    Delete,
     UseGuards,
     Req,
-    NotFoundException,
-    UseInterceptors,
-    ClassSerializerInterceptor,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
