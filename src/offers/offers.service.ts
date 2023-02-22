@@ -4,13 +4,16 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { CreateOfferDto } from "./dto/create-offer.dto";
-import { UpdateOfferDto } from "./dto/update-offer.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UsersService } from "../users/users.service";
 import { Offer } from "./entities/offer.entity";
 import { WishesService } from "../wishes/wishes.service";
 import { UpdateWishDto } from "../wishes/dto/update-wish.dto";
+import {
+    OFFER_AMOUNT_EXCEEDS_ITEM_PRICE_ERROR_MESSAGE,
+    OFFER_NOT_FOUND_ERROR_MESSAGE,
+} from "../utils/errorConstants";
 
 @Injectable()
 export class OffersService {
@@ -22,14 +25,14 @@ export class OffersService {
     ) {}
     async create(createOfferDto: CreateOfferDto, userId: number) {
         const user = await this.usersService.findOneByIdOrFail(userId);
-        if (!user) throw new NotFoundException("Пользователь не существует.");
         const wish = await this.wishesService.findOneOrFail(
             createOfferDto.itemId,
         );
-        const raised = wish.raised + createOfferDto.amount;
-        if (raised >= wish.price) {
+        // постгрес возвращает цифры с точкой как стринги, вау
+        const raised = +wish.raised + createOfferDto.amount;
+        if (raised > wish.price) {
             throw new BadRequestException(
-                "Сумма собранных средств не может превышать стоимость подарка.",
+                OFFER_AMOUNT_EXCEEDS_ITEM_PRICE_ERROR_MESSAGE,
             );
         }
         await this.wishesService.update(createOfferDto.itemId, {
@@ -51,21 +54,13 @@ export class OffersService {
         return offers;
     }
 
-    async findOne(id: number) {
+    async findOneOrFail(id: number) {
         const offer = await this.offersRepository.findOne({
             where: { id },
             relations: ["user", "item"],
         });
-        if (!offer) throw new NotFoundException("Предложение не существует");
+        if (!offer) throw new NotFoundException(OFFER_NOT_FOUND_ERROR_MESSAGE);
         delete offer.user.password;
         return offer;
-    }
-
-    update(id: number, updateOfferDto: UpdateOfferDto) {
-        return `This action updates a #${id} offer`;
-    }
-
-    remove(id: number) {
-        return `This action removes a #${id} offer`;
     }
 }

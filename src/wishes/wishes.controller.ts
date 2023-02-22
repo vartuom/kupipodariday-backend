@@ -18,11 +18,11 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { User } from "../users/entities/user.entity";
 import { Wish } from "./entities/wish.entity";
 
-@UseGuards(JwtAuthGuard)
 @Controller("wishes")
 export class WishesController {
     constructor(private readonly wishesService: WishesService) {}
 
+    @UseGuards(JwtAuthGuard)
     @Post()
     create(
         @Req() { user }: { user: Omit<User, "password"> },
@@ -41,11 +41,13 @@ export class WishesController {
         return await this.wishesService.findTop();
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get(":id")
     findOne(@Param("id") id: number) {
         return this.wishesService.findOneOrFail(id);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Patch(":id")
     update(
         @Param("id") id: number,
@@ -55,6 +57,7 @@ export class WishesController {
         return this.wishesService.update(id, updateWishDto, user);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Delete(":id")
     remove(
         @Param("id") wishId: number,
@@ -63,6 +66,7 @@ export class WishesController {
         return this.wishesService.remove(wishId, user.id);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post(":id/copy")
     copy(
         @Req() { user }: { user: Omit<User, "password"> },

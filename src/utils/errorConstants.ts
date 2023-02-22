@@ -17,3 +17,6 @@ export const CANT_CHANGE_WISHLIST_ERROR_MESSAGE =
 
 export const WRONG_USERNAME_OR_PASSWORD_ERROR_MESSAGE =
     "Некорректная пара логин и пароль.";
+export const OFFER_AMOUNT_EXCEEDS_ITEM_PRICE_ERROR_MESSAGE =
+    "Сумма собранных средств не может превышать стоимость подарка.";
+export const OFFER_NOT_FOUND_ERROR_MESSAGE = "Предложение не существует.";

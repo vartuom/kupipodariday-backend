@@ -3,7 +3,7 @@ import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, { cors: true });
 
     // Для валидации данных от клиента в DTO в Nest.js есть встроенный класс ValidationPipe.
     // Чтобы использовать ValidationPipe, понадобится установить два модуля:
@@ -13,7 +13,7 @@ async function bootstrap() {
     // и не позволяет ловить эксепшены при сохранении в БД неизвестных полей
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-    await app.listen(3000);
+    await app.listen(3001);
 }
 
 bootstrap();

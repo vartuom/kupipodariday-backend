@@ -35,16 +35,6 @@ export class OffersController {
 
     @Get(":id")
     findOne(@Param("id") id: number) {
-        return this.offersService.findOne(id);
-    }
-
-    @Patch(":id")
-    update(@Param("id") id: string, @Body() updateOfferDto: UpdateOfferDto) {
-        return this.offersService.update(+id, updateOfferDto);
-    }
-
-    @Delete(":id")
-    remove(@Param("id") id: string) {
-        return this.offersService.remove(+id);
+        return this.offersService.findOneOrFail(id);
     }
 }

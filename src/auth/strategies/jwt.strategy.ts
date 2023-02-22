@@ -8,7 +8,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(private readonly userService: UsersService) {
         // вытаскиваем Bearer токен из Auth заголовка
         super({
-            secretOrKey: "gayfish", // надо потом не забыть спрятать
+            secretOrKey: "pickleRick!", // надо потом не забыть спрятать
             ignoreExpiration: false,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
         });
