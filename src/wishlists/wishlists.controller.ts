@@ -14,7 +14,6 @@ import { CreateWishlistDto } from "./dto/create-wishlist.dto";
 import { UpdateWishlistDto } from "./dto/update-wishlist.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { User } from "../users/entities/user.entity";
-import { use } from "passport";
 
 @UseGuards(JwtAuthGuard)
 @Controller("wishlists")
@@ -36,7 +35,7 @@ export class WishlistsController {
 
     @Get(":id")
     findOne(@Param("id") id: number) {
-        return this.wishlistsService.findOne(id);
+        return this.wishlistsService.findOneOrFail(id);
     }
 
     @Patch(":id")

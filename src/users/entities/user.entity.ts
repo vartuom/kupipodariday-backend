@@ -41,6 +41,7 @@ export class User {
 
     @Column({ select: false })
     @IsEmail()
+    @Exclude()
     email: string;
 
     @Column({ select: false })

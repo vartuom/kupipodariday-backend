@@ -20,7 +20,7 @@ import { User } from "./entities/user.entity";
 import { FindUsersDto } from "./dto/find-users.dto";
 
 // все ручки контроллера спрятаны за jwt гардой - все получают на вход Req {user}
-// @UseInterceptors(ClassSerializerInterceptor) убирает из респонсов все поля сущностей,
+// НЕ АКТУАЛЬНО - @UseInterceptors(ClassSerializerInterceptor) убирает из респонсов все поля сущностей,
 // помеченные декоратором @Exclude (например, password)
 // https://stackoverflow.com/questions/50360101/how-to-exclude-entity-field-from-returned-by-controller-json-nestjs-typeorm
 @UseGuards(JwtAuthGuard)

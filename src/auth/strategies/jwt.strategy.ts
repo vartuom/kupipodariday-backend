@@ -15,12 +15,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     // в пэйлоад приходит ровно то, что было зашифровано в методе login сервиса auth
-    // а именно const payload = { email };
-    async validate({ email }: { email: string }) {
-        const user = await this.userService.findOneByEmailOrFail(email);
-        // убираем хэш пароля из объекта
-        const { password, ...restUserProps } = user;
+    // а именно const payload = { userId };
+    async validate({ userId }: { userId: number }) {
+        const user = await this.userService.findOneByIdOrFail(userId);
         // стратегия передает в Req объект user
-        return restUserProps;
+        return user;
     }
 }

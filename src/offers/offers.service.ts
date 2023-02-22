@@ -23,7 +23,9 @@ export class OffersService {
     async create(createOfferDto: CreateOfferDto, userId: number) {
         const user = await this.usersService.findOneByIdOrFail(userId);
         if (!user) throw new NotFoundException("Пользователь не существует.");
-        const wish = await this.wishesService.findOne(createOfferDto.itemId);
+        const wish = await this.wishesService.findOneOrFail(
+            createOfferDto.itemId,
+        );
         const raised = wish.raised + createOfferDto.amount;
         if (raised >= wish.price) {
             throw new BadRequestException(

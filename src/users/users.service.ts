@@ -26,11 +26,11 @@ export class UsersService {
         private readonly hashService: HashService,
     ) {}
 
-    async findOneByEmailOrFail(email: string): Promise<User> {
+    /*async findOneByEmailOrFail(email: string): Promise<User> {
         const user = await this.usersRepository.findOneBy({ email });
         if (!user) throw new NotFoundException(USER_NOT_FOUND_ERROR_MESSAGE);
         return user;
-    }
+    }*/
 
     async findOneForAuthOrFail(username: string): Promise<User> {
         // возвращаем с паролем, т.к. метод используется в валидации

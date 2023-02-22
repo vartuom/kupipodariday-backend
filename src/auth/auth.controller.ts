@@ -38,8 +38,8 @@ export class AuthController {
     // декомпозируем req, достаем объект пользователя
     signin(@Request() { user }) {
         // на базе полученного объекта пользователя создаем JWT
-        // возвращаем на кликент объект с токеном, в токен записываем только email
-        return this.authService.login(user.email);
+        // возвращаем на кликент объект с токеном, в токен записываем только id
+        return this.authService.login(user.id);
     }
 
     @UseGuards(JwtAuthGuard)

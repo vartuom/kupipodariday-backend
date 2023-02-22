@@ -43,7 +43,7 @@ export class WishesController {
 
     @Get(":id")
     findOne(@Param("id") id: number) {
-        return this.wishesService.findOne(id);
+        return this.wishesService.findOneOrFail(id);
     }
 
     @Patch(":id")

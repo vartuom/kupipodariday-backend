@@ -10,6 +10,11 @@ import { Wish } from "./entities/wish.entity";
 import { In, Repository } from "typeorm";
 import { UsersService } from "../users/users.service";
 import { User } from "../users/entities/user.entity";
+import {
+    CANT_CHANGE_WISH_ERROR_MESSAGE,
+    CANT_DELETE_WISH_ERROR_MESSAGE,
+    WISH_NOT_FOUND_ERROR_MESSAGE,
+} from "../utils/errorConstants";
 
 @Injectable()
 export class WishesService {
@@ -20,12 +25,10 @@ export class WishesService {
     ) {}
     async create(createWishDto: CreateWishDto, ownerId: number) {
         const owner = await this.usersService.findOneByIdOrFail(ownerId);
-        if (!owner) throw new NotFoundException("Пользователь не существует.");
         const wish = await this.wishesRepository.create({
             ...createWishDto,
             owner: owner,
         });
-        delete wish.owner.password;
         return await this.wishesRepository.save(wish);
     }
 
@@ -44,8 +47,6 @@ export class WishesService {
             order: { createdAt: "desc" },
             relations: ["owner", "offers"],
         });
-        // чистим выдачу от подтянутых паролей
-        lastWishes.forEach((wish) => delete wish.owner.password);
         return lastWishes;
     }
 
@@ -55,20 +56,15 @@ export class WishesService {
             order: { copied: "desc" },
             relations: ["owner", "offers"],
         });
-        topWishes.forEach((wish) => delete wish.owner.password);
         return topWishes;
     }
 
-    async findOne(id: number) {
+    async findOneOrFail(id: number) {
         const wish = await this.wishesRepository.findOne({
             where: { id },
             relations: ["owner", "offers"],
         });
-        if (!wish)
-            throw new NotFoundException(
-                "Желание с переданным id не существует.",
-            );
-        delete wish.owner.password;
+        if (!wish) throw new NotFoundException(WISH_NOT_FOUND_ERROR_MESSAGE);
         return wish;
     }
 
@@ -78,32 +74,25 @@ export class WishesService {
         updateWishDto: UpdateWishDto,
         user?: Omit<User, "password">,
     ) {
-        const wish = await this.findOne(id);
+        const wish = await this.findOneOrFail(id);
         if (user && wish.owner.id !== user.id) {
-            throw new BadRequestException(
-                "Нельзя изменять желания других пользователей",
-            );
+            throw new BadRequestException(CANT_CHANGE_WISH_ERROR_MESSAGE);
         }
         await this.wishesRepository.update(id, updateWishDto);
-        return await this.findOne(id);
+        return await this.findOneOrFail(id);
     }
 
     async remove(wishId: number, userId: number) {
-        const wish = await this.findOne(wishId);
+        const wish = await this.findOneOrFail(wishId);
         if (userId !== wish.owner.id)
-            throw new BadRequestException("Нельзя удалять чужие желания.");
+            throw new BadRequestException(CANT_DELETE_WISH_ERROR_MESSAGE);
         await this.wishesRepository.delete(wishId);
-        delete wish.owner.password;
         return wish;
     }
 
     async copy(wishId: number, ownerId: number) {
-        const wish = await this.findOne(wishId);
+        const wish = await this.findOneOrFail(wishId);
         const user = await this.usersService.findOneByIdOrFail(ownerId);
-        if (!wish || !user)
-            throw new NotFoundException(
-                "Пользователь или желание не существует.",
-            );
         await this.wishesRepository.update(wish.id, { copied: wish.copied++ });
         const {
             id,
@@ -118,7 +107,6 @@ export class WishesService {
             ...restWishProps,
             owner: user,
         });
-        delete copiedWish.owner.password;
         return await this.wishesRepository.save(copiedWish);
     }
 

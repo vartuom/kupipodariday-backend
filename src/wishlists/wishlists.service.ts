@@ -12,6 +12,11 @@ import { Repository } from "typeorm";
 import { UsersService } from "../users/users.service";
 import { Wishlist } from "./entities/wishlist.entity";
 import { WishesService } from "../wishes/wishes.service";
+import {
+    CANT_CHANGE_WISHLIST_ERROR_MESSAGE,
+    CANT_DELETE_WISHLIST_ERROR_MESSAGE,
+    WISHLIST_NOT_FOUND_ERROR_MESSAGE,
+} from "../utils/errorConstants";
 
 @Injectable()
 export class WishlistsService {
@@ -23,7 +28,6 @@ export class WishlistsService {
     ) {}
     async create(createWishlistDto: CreateWishlistDto, userId: number) {
         const user = await this.usersService.findOneByIdOrFail(userId);
-        if (!user) throw new NotFoundException("Пользователь не существует.");
         const wishes = await this.wishesService.findMany(
             createWishlistDto.itemsId,
         );
@@ -33,7 +37,6 @@ export class WishlistsService {
             items: wishes,
         });
         await this.wishlistsRepository.save(wishlist);
-        delete wishlist.owner.password;
         return wishlist;
     }
 
@@ -41,36 +44,30 @@ export class WishlistsService {
         const wishlists = await this.wishlistsRepository.find({
             relations: ["owner", "items"],
         });
-        wishlists.forEach((wishlist) => delete wishlist.owner.password);
         return wishlists;
     }
 
-    async findOne(id: number) {
+    async findOneOrFail(id: number) {
         const wishlist = await this.wishlistsRepository.findOne({
             where: { id },
             relations: ["owner", "items"],
         });
-        if (!wishlist) throw new NotFoundException("Список не существует.");
-        delete wishlist.owner.password;
-        delete wishlist.owner.email;
+        if (!wishlist)
+            throw new NotFoundException(WISHLIST_NOT_FOUND_ERROR_MESSAGE);
         return wishlist;
     }
 
     async update(listId: number, userId, updateWishlistDto: UpdateWishlistDto) {
-        const wishlist = await this.findOne(listId);
-        const user = await this.usersService.findOneByIdOrFail(userId);
-        if (!user) throw new NotFoundException("Пользователь не найден.");
+        const wishlist = await this.findOneOrFail(listId);
         if (wishlist.owner.id !== userId) {
-            throw new BadRequestException(
-                "Нельзя удалить списки других пользователей.",
-            );
+            throw new BadRequestException(CANT_CHANGE_WISHLIST_ERROR_MESSAGE);
         }
         if (updateWishlistDto.itemsId) {
             const wishes = await this.wishesService.findMany(
                 updateWishlistDto.itemsId,
             );
             const { itemsId, ...restUpdateProps } = updateWishlistDto;
-            // ¯\_(ツ)_/¯ иначе  ERROR [ExceptionsHandler] Cannot query across many-to-many for property items
+            // ¯\_(ツ)_/¯ способ обойти ERROR [ExceptionsHandler] Cannot query across many-to-many for property items
             Object.assign(wishlist, {
                 ...restUpdateProps,
                 items: wishes,
@@ -79,13 +76,13 @@ export class WishlistsService {
         } else {
             await this.wishlistsRepository.update(listId, updateWishlistDto);
         }
-        return await this.findOne(listId);
+        return await this.findOneOrFail(listId);
     }
 
     async remove(listId: number, userId: number) {
-        const wishlist = await this.findOne(listId);
+        const wishlist = await this.findOneOrFail(listId);
         if (wishlist.owner.id !== userId)
-            throw new ForbiddenException("Нельзя удалять чужие списки");
+            throw new ForbiddenException(CANT_DELETE_WISHLIST_ERROR_MESSAGE);
         await this.wishlistsRepository.delete(listId);
         return wishlist;
     }

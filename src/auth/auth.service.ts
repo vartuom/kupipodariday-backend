@@ -7,6 +7,7 @@ import {
 import { UsersService } from "../users/users.service";
 import { JwtService } from "@nestjs/jwt";
 import { HashService } from "../hash/hash.service";
+import { WRONG_USERNAME_OR_PASSWORD_ERROR_MESSAGE } from "../utils/errorConstants";
 
 @Injectable()
 export class AuthService {
@@ -18,13 +19,13 @@ export class AuthService {
     ) {}
 
     // валидируем по паролю через локальную стратегию
-    // перехватчик убирает пароль из выдачи
+    // перехватчик убирает пароль и почту из ответа
     @UseInterceptors(ClassSerializerInterceptor)
     async validateUser(username: string, plainTextPassword: string) {
         const user = await this.usersService.findOneForAuthOrFail(username);
         if (!user)
             throw new UnauthorizedException(
-                "Некорректная пара логин и пароль.",
+                WRONG_USERNAME_OR_PASSWORD_ERROR_MESSAGE,
             );
         const match = await this.hashService.compare(
             plainTextPassword,
@@ -32,15 +33,15 @@ export class AuthService {
         );
         if (!match)
             throw new UnauthorizedException(
-                "Некорректная пара логин и пароль.",
+                WRONG_USERNAME_OR_PASSWORD_ERROR_MESSAGE,
             );
         //юзер улетает в локальнную стратегию
         return user;
     }
 
-    login(email: string) {
-        const payload = { email };
-        // возвращаем на кликент объект с токеном, в токен записываем только email
+    login(userId: number) {
+        const payload = { userId };
+        // возвращаем на клиент объект с токеном, в токен записываем только userId
         return {
             access_token: this.jwtService.sign(payload),
         };
