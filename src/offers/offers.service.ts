@@ -11,6 +11,7 @@ import { Offer } from "./entities/offer.entity";
 import { WishesService } from "../wishes/wishes.service";
 import { UpdateWishDto } from "../wishes/dto/update-wish.dto";
 import {
+    CANT_DONATE_FOR_YOURSELF_ERROR_MESSAGE,
     OFFER_AMOUNT_EXCEEDS_ITEM_PRICE_ERROR_MESSAGE,
     OFFER_NOT_FOUND_ERROR_MESSAGE,
 } from "../utils/errorConstants";
@@ -28,6 +29,11 @@ export class OffersService {
         const wish = await this.wishesService.findOneOrFail(
             createOfferDto.itemId,
         );
+        if (user.id === wish.owner.id) {
+            throw new BadRequestException(
+                CANT_DONATE_FOR_YOURSELF_ERROR_MESSAGE,
+            );
+        }
         // постгрес возвращает цифры с точкой как стринги, вау
         const raised = +wish.raised + createOfferDto.amount;
         if (raised > wish.price) {

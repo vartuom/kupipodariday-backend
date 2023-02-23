@@ -13,6 +13,8 @@ import { User } from "../users/entities/user.entity";
 import {
     CANT_CHANGE_WISH_ERROR_MESSAGE,
     CANT_DELETE_WISH_ERROR_MESSAGE,
+    CANT_DELETE_WISH_WITH_DONATIONS_ERROR_MESSAGE,
+    CANT_UPDATE_WISH_PRICE_IF_DONATIONS_EXISTS_ERROR_MESSAGE,
     WISH_NOT_FOUND_ERROR_MESSAGE,
 } from "../utils/errorConstants";
 
@@ -78,6 +80,10 @@ export class WishesService {
         if (user && wish.owner.id !== user.id) {
             throw new BadRequestException(CANT_CHANGE_WISH_ERROR_MESSAGE);
         }
+        if (updateWishDto.price && wish.offers.length > 0)
+            throw new BadRequestException(
+                CANT_UPDATE_WISH_PRICE_IF_DONATIONS_EXISTS_ERROR_MESSAGE,
+            );
         await this.wishesRepository.update(id, updateWishDto);
         return await this.findOneOrFail(id);
     }
@@ -86,6 +92,13 @@ export class WishesService {
         const wish = await this.findOneOrFail(wishId);
         if (userId !== wish.owner.id)
             throw new BadRequestException(CANT_DELETE_WISH_ERROR_MESSAGE);
+        // я добавил каскадное удаление заявок, но было бы странно, если бы это можно было сделать.
+        // в задании момент не описан, поэтому добавил еще вариант с обработкой ошибки
+        // по аналогии с запретом на изменение стоимости при наличии донатов.
+        if (wish.offers.length > 0)
+            throw new BadRequestException(
+                CANT_DELETE_WISH_WITH_DONATIONS_ERROR_MESSAGE,
+            );
         await this.wishesRepository.delete(wishId);
         return wish;
     }

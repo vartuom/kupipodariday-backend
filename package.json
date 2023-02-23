@@ -1,8 +1,8 @@
 {
   "name": "kupipodariday-backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Blind gifts and wishes service",
+  "author": "Artem Vasilyev",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

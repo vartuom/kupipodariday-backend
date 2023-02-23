@@ -32,6 +32,6 @@ export class Offer {
     @ManyToOne(() => User, (user) => user.offers)
     user: User;
 
-    @ManyToOne(() => Wish, (wish) => wish.offers)
+    @ManyToOne(() => Wish, (wish) => wish.offers, { onDelete: "CASCADE" })
     item: Wish;
 }
