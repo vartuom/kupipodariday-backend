@@ -1,3 +1,5 @@
+import {json} from "express";
+
 export default () => ({
     port: parseInt(process.env.PORT, 10) || 3000,
     jwt: {
@@ -11,6 +13,6 @@ export default () => ({
         username: process.env.DATABASE_USERNAME,
         password: process.env.DATABASE_PASSWORD,
         name: process.env.DATABASE_NAME,
-        synchronize: process.env.DATABASE_SYNCHRONIZE || false,
+        synchronize: JSON.parse(process.env.DATABASE_SYNCHRONIZE) || false,
     },
 });
