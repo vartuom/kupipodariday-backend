@@ -4,6 +4,7 @@ import { ValidationPipe } from "@nestjs/common";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, { cors: true });
+    const PORT = process.env.PORT || 3001;
 
     // Для валидации данных от клиента в DTO в Nest.js есть встроенный класс ValidationPipe.
     // Чтобы использовать ValidationPipe, понадобится установить два модуля:
@@ -13,7 +14,7 @@ async function bootstrap() {
     // и не позволяет ловить эксепшены при сохранении в БД неизвестных полей
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-    await app.listen(3001);
+    await app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 }
 
 bootstrap();
